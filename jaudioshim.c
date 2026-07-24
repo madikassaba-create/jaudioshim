@@ -1,5 +1,5 @@
 /*
- * audioshim.c — couche minimaliste au-dessus de PortAudio. VERSION 002
+ * jaudioshim.c — couche minimaliste au-dessus de PortAudio. VERSION 002
  *
  * Expose des fonctions C simples et non bloquantes, appelables depuis J
  * via 'cd' :
@@ -22,7 +22,7 @@
  * 'nframes' est un nombre de FRAMES (pas un nombre de floats total).
  *
  * Compilation :
- *   gcc -shared -fPIC -O2 -o libaudioshim.so audioshim.c -lportaudio -lpthread
+ *   gcc -shared -fPIC -O2 -o libjaudioshim.so jaudioshim.c -lportaudio -lpthread
  */
 
 #include <portaudio.h>
