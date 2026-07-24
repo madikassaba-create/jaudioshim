@@ -26,7 +26,7 @@ audioSeek=:{{0{::(LIB,' shim_seek i i') cd (,y)}}
 Exemple :
 ```J
 sr=:16000
-osc =: (1 o.2p1*1|[%~[:+/\#)
+osc=:1 o.2p1*1|[%~[:+/\#
 audioInit sr;1  
 audioPlay sr osc 440
 audioTerminate''
