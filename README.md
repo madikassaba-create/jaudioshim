@@ -11,16 +11,16 @@ gcc -shared -fPIC -O2 -o libaudioshim.so audioshim.c -lportaudio -lpthread
 2. Call libaudioshim.so functions with theses J bindings :
 ```J
 LIB=:'myfolder/libaudioshim002.so'
-audioTerminate =: 	{{0{::(LIB,' shim_terminate n') cd ''}}
-audioInit =: 	{{(LIB,' shim_init i i i') cd y [ audioTerminate ''}} 
-audioPlay =: play=: 	{{0{::  (LIB,' shim_play i *f i') cd y;(#y)}}
-audioStop =: stop=:	{{0{::(LIB,' shim_stop n') cd ''}}
-audioStatus =: 	{{0{::(LIB,' shim_status i') cd ''}}
-audioPause=:pause =:	{{0{::(LIB,' shim_pause n') cd ''}}
-audioResume=:resume=:{{0{::(LIB,' shim_resume n') cd ''}}
-audioGain=: gain=:	{{0{::''[ (LIB,' shim_set_gain n f') cd (,y)}}
-audioPos =: 	{{0{::(LIB,' shim_position i') cd ''}}
-audioSeek=:	{{0{::(LIB,' shim_seek i i') cd (,y)}}
+audioTerminate=:{{0{::(LIB,' shim_terminate n') cd ''}}
+audioInit=:{{(LIB,' shim_init i i i') cd y [ audioTerminate ''}} 
+audioPlay=:{{0{::(LIB,' shim_play i *f i') cd y;(#y)}}
+audioStop=:{{0{::(LIB,' shim_stop n') cd ''}}
+audioStatus=:{{0{::(LIB,' shim_status i') cd ''}}
+audioPause=:{{0{::(LIB,' shim_pause n') cd ''}}
+audioResume=:{{0{::(LIB,' shim_resume n') cd ''}}
+audioGain=:{{0{::''[ (LIB,' shim_set_gain n f') cd (,y)}}
+audioPos=:{{0{::(LIB,' shim_position i') cd ''}}
+audioSeek=:{{0{::(LIB,' shim_seek i i') cd (,y)}}
 ```
 
 Exemple :
