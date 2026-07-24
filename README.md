@@ -4,7 +4,7 @@ Works for J9.7, debian 13 with portaudio19-dev installed.
 
 
 1.Compile audioshim.c :
-```Bash
+```console
 gcc -shared -fPIC -O2 -o libaudioshim.so audioshim.c -lportaudio -lpthread
 ```
 
