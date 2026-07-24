@@ -1,16 +1,16 @@
-# jaudioshim
+# jAudioShim
 Simple audio output for J.
 Works for J9.7, debian 13 with portaudio19-dev installed.
 
 
 1.Compile audioshim.c :
 ```shell
-gcc -shared -fPIC -O2 -o libaudioshim.so audioshim.c -lportaudio -lpthread
+gcc -shared -fPIC -O2 -o libjaudioshim.so jaudioshim.c -lportaudio -lpthread
 ```
 
-2. Call libaudioshim.so functions with theses J bindings :
+2. Call libjaudioshim.so functions with theses J bindings :
 ```J
-LIB=:'myfolder/libaudioshim002.so'
+LIB=:'myfolder/libjaudioshim002.so'
 audioTerminate=:{{0{::(LIB,' shim_terminate n') cd ''}}
 audioInit=:{{(LIB,' shim_init i i i') cd y [ audioTerminate ''}} 
 audioPlay=:{{0{::(LIB,' shim_play i *f i') cd y;(#y)}}
