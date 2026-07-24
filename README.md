@@ -10,7 +10,7 @@ gcc -shared -fPIC -O2 -o libjaudioshim.so jaudioshim.c -lportaudio -lpthread
 
 2. Call libjaudioshim.so functions with theses J bindings :
 ```J
-LIB=:'myfolder/libjaudioshim002.so'
+LIB=:'myfolder/libjaudioshim.so'
 audioTerminate=:{{0{::(LIB,' shim_terminate n') cd ''}}
 audioInit=:{{(LIB,' shim_init i i i') cd y [ audioTerminate ''}} 
 audioPlay=:{{0{::(LIB,' shim_play i *f i') cd y;(#y)}}
