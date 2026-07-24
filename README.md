@@ -29,4 +29,5 @@ sr=:16000
 osc =: {{1 o. 2p1 * 1|(+/\ y) % sr}}
 audioInit 16000;1  
 play osc sr#440
+audioTerminate''
 ```
