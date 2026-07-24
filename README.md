@@ -4,11 +4,11 @@ Works for J9.7, debian 13 with portaudio19-dev installed.
 
 
 1.Compile audioshim.c :
-
+```Bash
 gcc -shared -fPIC -O2 -o libaudioshim.so audioshim.c -lportaudio -lpthread
+```
 
 2. Call libaudioshim.so functions with theses J bindings :
-
 ```J
 LIB=:'/home/user0/libaudioshim002.so'
 audioTerminate =: 	{{0{::(LIB,' shim_terminate n') cd ''}}
