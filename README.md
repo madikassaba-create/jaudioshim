@@ -1,7 +1,5 @@
 # jAudioShim
-Simple audio output for J.
-
-Works for J9.7, debian 13 with portaudio19-dev installed.
+Simple audio output for J. Works for J9.7, debian 13 with portaudio19-dev installed.
 
 Plays floats in _1 1 range as sounds.
 
