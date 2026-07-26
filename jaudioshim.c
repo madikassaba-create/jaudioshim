@@ -1,5 +1,5 @@
 /*
- * jaudioshim.c — couche minimaliste au-dessus de PortAudio. VERSION 002
+ * audioshim.c — couche minimaliste au-dessus de PortAudio.
  *
  * Expose des fonctions C simples et non bloquantes, appelables depuis J
  * via 'cd' :
@@ -22,9 +22,10 @@
  * 'nframes' est un nombre de FRAMES (pas un nombre de floats total).
  *
  * Compilation :
- *   gcc -shared -fPIC -O2 -o libjaudioshim.so jaudioshim.c -lportaudio -lpthread
+ *   gcc -shared -fPIC -O2 -o libaudioshim.so audioshim.c -lportaudio -lpthread
  */
 
+#define _GNU_SOURCE
 #include <portaudio.h>
 #include <pthread.h>
 #include <stdlib.h>
@@ -61,8 +62,8 @@ static float g_gain = 1.0f;
 
 /* ---- callback temps réel : jamais de malloc/free ici, jamais d'appel bloquant ---- */
 static int callback(const void *input, void *output, unsigned long frameCount,
-                     const PaStreamCallbackTimeInfo *timeInfo,
-                     PaStreamCallbackFlags statusFlags, void *userData)
+                    const PaStreamCallbackTimeInfo *timeInfo,
+                    PaStreamCallbackFlags statusFlags, void *userData)
 {
     (void)input; (void)timeInfo; (void)statusFlags; (void)userData;
     float *out = (float *)output;
@@ -81,30 +82,30 @@ static int callback(const void *input, void *output, unsigned long frameCount,
             if (g_pause_ramp < pause_target) g_pause_ramp = pause_target;
         }
         /* gele : on n'avance plus aucune position/compteur tant que la
-           rampe n'a pas fini de descendre a 0 */
+         *          rampe n'a pas fini de descendre a 0 */
         int frozen = (g_paused && g_pause_ramp <= 0.0f);
 
         float gain_active = 0.0f, gain_outgoing = 0.0f;
 
         switch (g_state) {
-        case ST_IDLE:
+            case ST_IDLE:
+                break;
+            case ST_FADEIN:
+                gain_active = g_fade_len > 0 ? (float)g_fade_counter / (float)g_fade_len : 1.0f;
+                if (gain_active > 1.0f) gain_active = 1.0f;
+                break;
+            case ST_STEADY:
+                gain_active = 1.0f;
+                break;
+            case ST_XFADE:
+                gain_active = g_fade_len > 0 ? (float)g_fade_counter / (float)g_fade_len : 1.0f;
+                if (gain_active > 1.0f) gain_active = 1.0f;
+                gain_outgoing = 1.0f - gain_active;
             break;
-        case ST_FADEIN:
-            gain_active = g_fade_len > 0 ? (float)g_fade_counter / (float)g_fade_len : 1.0f;
-            if (gain_active > 1.0f) gain_active = 1.0f;
-            break;
-        case ST_STEADY:
-            gain_active = 1.0f;
-            break;
-        case ST_XFADE:
-            gain_active = g_fade_len > 0 ? (float)g_fade_counter / (float)g_fade_len : 1.0f;
-            if (gain_active > 1.0f) gain_active = 1.0f;
-            gain_outgoing = 1.0f - gain_active;
-            break;
-        case ST_FADEOUT:
-            gain_outgoing = g_fade_len > 0 ? 1.0f - (float)g_fade_counter / (float)g_fade_len : 0.0f;
-            if (gain_outgoing < 0.0f) gain_outgoing = 0.0f;
-            break;
+            case ST_FADEOUT:
+                gain_outgoing = g_fade_len > 0 ? 1.0f - (float)g_fade_counter / (float)g_fade_len : 0.0f;
+                if (gain_outgoing < 0.0f) gain_outgoing = 0.0f;
+                break;
         }
 
         float mix = g_pause_ramp * g_gain;
@@ -120,52 +121,52 @@ static int callback(const void *input, void *output, unsigned long frameCount,
 
         if (frozen) continue;   /* rien n'avance tant qu'on est vraiment en pause */
 
-        if (g_active)   g_active_pos++;
-        if (g_outgoing) g_outgoing_pos++;
+            if (g_active)   g_active_pos++;
+            if (g_outgoing) g_outgoing_pos++;
 
-        switch (g_state) {
-        case ST_FADEIN:
-            g_fade_counter++;
-            if (g_active_pos >= g_active_len) {
-                free(g_active); g_active = NULL;
-                g_state = ST_IDLE; g_fade_counter = 0;
-            } else if (g_fade_counter >= g_fade_len) {
-                g_state = ST_STEADY;
+            switch (g_state) {
+                case ST_FADEIN:
+                    g_fade_counter++;
+                    if (g_active_pos >= g_active_len) {
+                        free(g_active); g_active = NULL;
+                        g_state = ST_IDLE; g_fade_counter = 0;
+                    } else if (g_fade_counter >= g_fade_len) {
+                        g_state = ST_STEADY;
+                    }
+                    break;
+                case ST_STEADY:
+                    if (g_active_pos >= g_active_len) {
+                        free(g_active); g_active = NULL;
+                        g_state = ST_IDLE;
+                    }
+                    break;
+                case ST_XFADE:
+                    g_fade_counter++;
+                    if (g_outgoing && g_outgoing_pos >= g_outgoing_len) {
+                        free(g_outgoing); g_outgoing = NULL;
+                    }
+                    if (g_fade_counter >= g_fade_len || !g_outgoing) {
+                        if (g_outgoing) { free(g_outgoing); g_outgoing = NULL; }
+                        g_fade_counter = 0;
+                        if (g_active && g_active_pos < g_active_len) {
+                            g_state = ST_STEADY;
+                        } else {
+                            if (g_active) { free(g_active); g_active = NULL; }
+                            g_state = ST_IDLE;
+                        }
+                    }
+                    break;
+                case ST_FADEOUT:
+                    g_fade_counter++;
+                    if (g_fade_counter >= g_fade_len || !g_outgoing || g_outgoing_pos >= g_outgoing_len) {
+                        if (g_outgoing) { free(g_outgoing); g_outgoing = NULL; }
+                        g_fade_counter = 0;
+                        g_state = ST_IDLE;
+                    }
+                    break;
+                default:
+                    break;
             }
-            break;
-        case ST_STEADY:
-            if (g_active_pos >= g_active_len) {
-                free(g_active); g_active = NULL;
-                g_state = ST_IDLE;
-            }
-            break;
-        case ST_XFADE:
-            g_fade_counter++;
-            if (g_outgoing && g_outgoing_pos >= g_outgoing_len) {
-                free(g_outgoing); g_outgoing = NULL;
-            }
-            if (g_fade_counter >= g_fade_len || !g_outgoing) {
-                if (g_outgoing) { free(g_outgoing); g_outgoing = NULL; }
-                g_fade_counter = 0;
-                if (g_active && g_active_pos < g_active_len) {
-                    g_state = ST_STEADY;
-                } else {
-                    if (g_active) { free(g_active); g_active = NULL; }
-                    g_state = ST_IDLE;
-                }
-            }
-            break;
-        case ST_FADEOUT:
-            g_fade_counter++;
-            if (g_fade_counter >= g_fade_len || !g_outgoing || g_outgoing_pos >= g_outgoing_len) {
-                if (g_outgoing) { free(g_outgoing); g_outgoing = NULL; }
-                g_fade_counter = 0;
-                g_state = ST_IDLE;
-            }
-            break;
-        default:
-            break;
-        }
     }
     pthread_mutex_unlock(&g_lock);
     return paContinue;
@@ -186,14 +187,37 @@ EXPORT int shim_init(int sample_rate, int channels) {
     PaError err = Pa_Initialize();
     if (err != paNoError) return -1;
 
-    err = Pa_OpenDefaultStream(&g_stream,
-                                0,              /* pas d'entree */
-                                channels,       /* sortie */
-                                paFloat32,
-                                sample_rate,
-                                256,            /* frames par buffer */
-                                callback,
-                                NULL);
+    /* Cherche en priorite un device nomme "pulse"/"pipewire" : evite de
+     *      prendre la carte ALSA en acces exclusif, ce qui empecherait toute
+     *      autre application (navigateur, etc.) de jouer du son en meme temps. */
+    PaDeviceIndex device = paNoDevice;
+    int n = Pa_GetDeviceCount();
+    for (int i = 0; i < n; i++) {
+        const PaDeviceInfo *info = Pa_GetDeviceInfo(i);
+        if (!info || info->maxOutputChannels < channels) continue;
+        if (strcasestr(info->name, "pulse") || strcasestr(info->name, "pipewire")) {
+            device = i;
+            break;
+        }
+    }
+    if (device == paNoDevice) device = Pa_GetDefaultOutputDevice();
+    if (device == paNoDevice) { Pa_Terminate(); return -4; }
+
+    PaStreamParameters outParams;
+    outParams.device = device;
+    outParams.channelCount = channels;
+    outParams.sampleFormat = paFloat32;
+    outParams.suggestedLatency = Pa_GetDeviceInfo(device)->defaultLowOutputLatency;
+    outParams.hostApiSpecificStreamInfo = NULL;
+
+    err = Pa_OpenStream(&g_stream,
+                        NULL,          /* pas d'entree */
+                        &outParams,
+                        sample_rate,
+                        256,           /* frames par buffer */
+                        paNoFlag,
+                        callback,
+                        NULL);
     if (err != paNoError) { Pa_Terminate(); return -2; }
 
     err = Pa_StartStream(g_stream);
