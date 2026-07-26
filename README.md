@@ -1,9 +1,10 @@
 # jAudioShim
 Simple audio output for J.
 Works for J9.7, debian 13 with portaudio19-dev installed.
+Plays floats in _1 1 range as sounds.
 
 
-1.Compile audioshim.c :
+1. Compile jaudioshim.c :
 ```shell
 gcc -shared -fPIC -O2 -o libjaudioshim.so jaudioshim.c -lportaudio -lpthread
 ```
@@ -28,6 +29,6 @@ Example :
 sr=:16000
 osc=:1 o.2p1*1|[%~[:+/\#
 audioInit sr;1  
-audioPlay sr osc 440
+audioPlay sr osc 440 
 audioTerminate''
 ```
