@@ -1,7 +1,7 @@
 # jAudioShim
 Simple audio output for J. Works for J9.7, debian 13 with portaudio19-dev installed.
 
-Plays floats in _1 1 range as sounds.
+Plays floats in _1 1 range as sounds. Use interleaved data for multiple output channels.
 
 
 1. Compile jaudioshim.c :
@@ -23,6 +23,8 @@ audioGain=:{{0{::''[ (LIB,' shim_set_gain n f') cd (,y)}}
 audioPos=:{{0{::(LIB,' shim_position i') cd ''}}
 audioSeek=:{{0{::(LIB,' shim_seek i i') cd (,y)}}
 ```
+
+Each returns error number (0 for success), except audioInit which returns error number, sound rate and channel count.
 
 Example :
 ```J
